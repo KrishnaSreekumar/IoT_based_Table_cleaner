@@ -1,0 +1,123 @@
+#include <Servo.h>
+int clean = 2; //2 == none
+int allclear = 2;
+int stat_rn = 2;
+//Ultrasonic sensor
+#define echoPin 5 
+#define trigPin 2 
+long duration; 
+int distance;
+//Ultrasonic sensor ka servo
+Servo myservo1;  // create servo object to control a servo
+int pos1 = 0;
+//Sweep servo
+Servo myservo2;
+int pos2 = 0;
+void setup() {
+  myservo1.attach(9);  //ultrasonic servo
+  myservo2.attach(10);   //sweep servo
+  pinMode(trigPin, OUTPUT); 
+  pinMode(echoPin, INPUT); 
+  Serial.begin(9600);
+}
+void loop() {
+    for (pos1 = 0; pos1 <= 180; pos1 += 1)
+  {
+    myservo1.write(pos1);
+    delay(80);
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    duration = pulseIn(echoPin, HIGH); //returns travel time
+    // Calculating distance
+    distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+    // Displays the distance on the Serial Monitor
+    Serial.print("Distance in cm: ");
+    Serial.print(distance);
+    Serial.println();
+    delay(100);
+    if (distance <= 50){
+      clean = 0;
+      stat_rn = check_if_allclear();
+    }    
+    if (clean == 0&&distance >= 50&&stat_rn==0){
+      Serial.print(stat_rn); 
+      sweep();
+    }
+  }
+  for (pos1 = 180; pos1 >= 0; pos1 -= 1)
+  {
+    myservo1.write(pos1);
+    delay(80);
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    duration = pulseIn(echoPin, HIGH); //returns travel time
+    // Calculating distance
+    distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+    // Displays the distance on the Serial Monitor
+    Serial.print("Distance in cm: ");
+    Serial.print(distance);
+    Serial.println();
+    delay(100);
+    if (distance <= 50){
+      clean = 0;
+      stat_rn = check_if_allclear();
+    }
+
+    if (clean == 0&&distance >= 50&&stat_rn==0){
+      Serial.print(stat_rn);  
+      sweep();
+    }
+  }
+}
+void sweep(){
+  int i  = 0;
+  while (i < 2){
+      for (pos2 = 0; pos2 <= 180; pos2 += 1)
+  {
+    myservo2.write(pos2);
+    delay(15);
+  }
+  for (pos2 = 180; pos2 >= 0; pos2 -= 1)
+  {
+    myservo2.write(pos2);
+    delay(15); 
+  }
+    i++;
+  }
+  clean = 1;
+  
+//  return;
+}
+int check_if_allclear(){
+  int stat = 1;
+  pos1 = 0;
+  myservo1.write(pos1);
+  for (pos1 = 0; pos1 <= 180; pos1 += 1)
+  {
+    myservo1.write(pos1);
+    delay(80);
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    duration = pulseIn(echoPin, HIGH); //returns travel time
+    // Calculating distance
+    distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+    // Displays the distance on the Serial Monitor
+    Serial.print(">>>Distance in cm: ");
+    Serial.print(distance);
+    Serial.println();
+    delay(100);
+    if (distance<=50){
+      stat = 0;  
+    }
+  }
+      return stat;  
+}
